@@ -1,0 +1,45 @@
+policy_module(Policy, 1.0.0)
+
+########################################
+#
+# Declarations
+#
+
+sandbox_x_domain_template(Policy)
+
+permissive Policy_t;
+permissive Policy_client_t;
+
+
+########################################
+#
+# Policy local policy
+#
+
+type Policy_port_t;
+corenet_port(Policy_port_t)
+
+
+sysnet_dns_name_resolve(Policy_t)
+corenet_all_recvfrom_unlabeled(Policy_t)
+
+allow Policy_t self:tcp_socket create_stream_socket_perms;
+corenet_tcp_sendrecv_generic_if(Policy_t)
+corenet_tcp_sendrecv_generic_node(Policy_t)
+corenet_tcp_sendrecv_all_ports(Policy_t)
+corenet_tcp_bind_generic_node(Policy_t)
+allow Policy_t Policy_port_t:tcp_socket name_bind;
+allow Policy_t Policy_port_t:tcp_socket name_connect;
+
+allow Policy_t self:udp_socket { create_socket_perms listen };
+corenet_udp_sendrecv_generic_if(Policy_t)
+corenet_udp_sendrecv_generic_node(Policy_t)
+corenet_udp_sendrecv_all_ports(Policy_t)
+allow Policy_t Policy_port_t:udp_socket name_bind;
+corenet_udp_bind_generic_node(Policy_t)
+
+domain_use_interactive_fds(Policy_t)
+
+files_read_etc_files(Policy_t)
+
+miscfiles_read_localization(Policy_t)
