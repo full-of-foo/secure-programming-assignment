@@ -1,36 +1,12 @@
-
-## <summary>policy for Policy</summary>
-
-########################################
-## <summary>
-##	Execute sandbox in the Policy_t domain, and
-##	allow the specified role the Policy_t domain.
-## </summary>
-## <param name="domain">
-##	<summary>
-##	Domain allowed to transition.
-##	</summary>
-## </param>
-## <param name="role">
-##	<summary>
-##	The role to be allowed the Policy_t domain.
-##	</summary>
-## </param>
+## <summary>Policy</summary>
+## <desc>
+##	<p>
+##		This creates a sandbox for the server allows for a client
+##	    to connect to the server.
+##	</p>
+##	<p>
+##		
+##		
+##	</p>
+## </desc>
 #
-interface(`Policy_transition',`
-	gen_require(`
-		type Policy_t;
-		type Policy_client_t;
-	')
-
-	allow $1 Policy_t:process { signal_perms transition };
-	dontaudit $1 Policy_t:process { noatsecure siginh rlimitinh };
-	role $2 types Policy_t;
-	role $2 types Policy_client_t;
-
-	allow Policy_t $1:process { sigchld signull };
-	allow Policy_t $1:fifo_file rw_inherited_fifo_file_perms;
-	allow Policy_client_t $1:process { sigchld signull };
-	allow Policy_client_t $1:fifo_file rw_inherited_fifo_file_perms;
-')
-
