@@ -1,45 +1,86 @@
 policy_module(Policy, 1.0.0)
 
+
 ########################################
 #
 # Declarations
 #
 
-sandbox_x_domain_template(Policy)
+# importing other modules i.e. thats not declared locally.
+# these are declared elsewhere but we need to use them in our
+# policy for our domtain transition rule
 
-permissive Policy_t;
-permissive Policy_client_t;
+gen_require(` type unconfined_t; role unconfined_r; ' )
+
+
+# declare types
+type Policy_t;
+
+type Policy_exec_t;
+
+
+# Process environments of programs that user process environments
+#transition to are called application # domains, and the type of such a
+#process is called a application domain type.
+# defining Policy_t & Policy_exec_t as application domain types here.
+
+application_domain(Policy_t, Policy_exec_t)
+
+
+# some one in the user role can be in Policy domain
+
+role unconfined_r types Policy_t;
+
+# allow the domain transition
+
+domtrans_pattern(unconfined_t, Policy_exec_t, Policy_t)
+
 
 
 ########################################
 #
-# Policy local policy
+# Myapp local policy
 #
 
-type Policy_port_t;
-corenet_port(Policy_port_t)
+# Allow the process to have an executable stack for Policy
+
+bool allow_Policy_t_execstack true;
+if ( allow_Policy_t_execstack ) {
+allow Policy_t self:process execstack;
+allow Policy_t self:process execmem;
+}
 
 
-sysnet_dns_name_resolve(Policy_t)
-corenet_all_recvfrom_unlabeled(Policy_t)
+# call to a abstracted rule its a macro4
 
-allow Policy_t self:tcp_socket create_stream_socket_perms;
-corenet_tcp_sendrecv_generic_if(Policy_t)
-corenet_tcp_sendrecv_generic_node(Policy_t)
-corenet_tcp_sendrecv_all_ports(Policy_t)
+files_exec_etc_files(Policy_t)
+
+
+# Allow Policy_t read system network config
+
+sysnet_read_config(Policy_t)
+
+# Allow the Policy process to read and write to the calling users
+#psudo terminal
+
+userdom_use_inherited_user_ptys(Policy_t)
+
+
+
+# Allow  Access Policy And create socket  
+
+allow Policy_t self:tcp_socket { create setopt bind};
+
+
+# this allows the caller to Bind tcp sockets to generic ports e.g.
+#ports with type port_t
+
+
+corenet_tcp_bind_generic_port( )
+
 corenet_tcp_bind_generic_node(Policy_t)
-allow Policy_t Policy_port_t:tcp_socket name_bind;
-allow Policy_t Policy_port_t:tcp_socket name_connect;
 
-allow Policy_t self:udp_socket { create_socket_perms listen };
-corenet_udp_sendrecv_generic_if(Policy_t)
-corenet_udp_sendrecv_generic_node(Policy_t)
-corenet_udp_sendrecv_all_ports(Policy_t)
-allow Policy_t Policy_port_t:udp_socket name_bind;
-corenet_udp_bind_generic_node(Policy_t)
 
-domain_use_interactive_fds(Policy_t)
+allow Policy_t self:tcp_socket { read write accept listen};
 
-files_read_etc_files(Policy_t)
 
-miscfiles_read_localization(Policy_t)
