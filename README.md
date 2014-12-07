@@ -58,7 +58,7 @@ Policy from config file:        targeted
 #	enforcing - SELinux security policy is enforced.
 #	permissive - SELinux prints warnings instead of enforcing.
 #	disabled - SELinux is fully disabled.
-SELINUX=enforcing
+     SELINUX=enforcing
 # SELINUXTYPE= type of policy in use. Possible values are:
 #	targeted - Only targeted network daemons are protected.
 #	strict - Full SELinux protection.
