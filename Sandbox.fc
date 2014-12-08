@@ -1,0 +1,5 @@
+
+/bin(/.*)?		gen_context(system_u:object_r:Sandbox_rw_t,s0)
+
+
+/bin/server		--	gen_context(system_u:object_r:Sandbox_exec_t,s0)

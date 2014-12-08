@@ -1,0 +1,78 @@
+policy_module(Sandbox, 1.0.0)
+
+########################################
+#
+# Declarations
+#
+
+
+# declare types
+type Sandbox_t;
+type Sandbox_exec_t;
+application_domain(Sandbox_t, Sandbox_exec_t)
+role system_r types Sandbox_t;
+
+
+
+type Sandbox_rw_t;
+files_type(Sandbox_rw_t)
+
+########################################
+#
+# Sandbox local policy
+#
+
+allow Sandbox_t self:fifo_file manage_fifo_file_perms;
+allow Sandbox_t self:unix_stream_socket create_stream_socket_perms;
+
+manage_dirs_pattern(Sandbox_t, Sandbox_rw_t, Sandbox_rw_t)
+manage_files_pattern(Sandbox_t, Sandbox_rw_t, Sandbox_rw_t)
+
+sysnet_dns_name_resolve(Sandbox_t)
+corenet_all_recvfrom_unlabeled(Sandbox_t)
+
+allow Sandbox_t self:tcp_socket create_stream_socket_perms;
+corenet_tcp_sendrecv_generic_if(Sandbox_t)
+corenet_tcp_sendrecv_generic_node(Sandbox_t)
+corenet_tcp_sendrecv_all_ports(Sandbox_t)
+corenet_tcp_bind_generic_node(Sandbox_t)
+
+gen_require(`
+    type Policy_port_t;
+')
+allow Sandbox_t Policy_port_t:tcp_socket name_bind;
+
+gen_require(`
+    type Policy_port_t;
+')
+allow Sandbox_t Policy_port_t:tcp_socket name_connect;
+
+allow Sandbox_t self:udp_socket { create_socket_perms listen };
+corenet_udp_sendrecv_generic_if(Sandbox_t)
+corenet_udp_sendrecv_generic_node(Sandbox_t)
+corenet_udp_sendrecv_all_ports(Sandbox_t)
+corenet_udp_bind_generic_node(Sandbox_t)
+
+gen_require(`
+    type Policy_port_t;
+')
+allow Sandbox_t Policy_port_t:udp_socket name_bind;
+
+domain_use_interactive_fds(Sandbox_t)
+
+files_read_etc_files(Sandbox_t)
+
+logging_send_syslog_msg(Sandbox_t)
+
+miscfiles_read_localization(Sandbox_t)
+
+sysnet_dns_name_resolve(Sandbox_t)
+
+optional_policy(`
+	gen_require(`
+		type unconfined_t;
+		role unconfined_r;
+	')
+
+	Sandbox_run(unconfined_t, unconfined_r)
+')

@@ -1,0 +1,5 @@
+ifdef(`Sandbox_per_role_template',`
+')
+ifdef(`Sandbox_per_userdomain_template',`
+errprint(`Warning: per_userdomain_templates have been renamed to per_role_templates (Sandbox_per_userdomain_template)'__endline__)
+')

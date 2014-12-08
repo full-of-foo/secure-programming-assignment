@@ -1,2 +1,0 @@
-# Users do not have file context, leave blank
-/bin/server -- gen_context(system_u:object_r:Policy_exec_t,s0)

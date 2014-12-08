@@ -1,0 +1,119 @@
+policy_module(Sandbox, 1.0.0)
+
+########################################
+#
+# Declarations
+#
+# importing other modules i.e. thats not declared locally.
+# these are declared elsewhere but we need to use them in our
+# policy for our domtain transition rule
+
+
+
+# declare types
+type Sandbox_t;
+type Sandbox_exec_t;
+
+#Set files with the sandbox_file_t type, treat the files as sandbox content.
+type Sandbox_file_t;
+
+application_domain(Sandbox_t, Sandbox_exec_t)
+role system_r types Sandbox_t;
+
+type Sandbox_rw_t;
+
+files_type(Sandbox_rw_t)
+
+########################################
+#
+# Sandbox local policy
+#
+
+allow myserver_t self:process Sandbox_file_t;
+
+
+allow Sandbox_t self:fifo_file manage_fifo_file_perms;
+allow Sandbox_t self:unix_stream_socket create_stream_socket_perms;
+
+manage_dirs_pattern(Sandbox_t, Sandbox_rw_t, Sandbox_rw_t)
+manage_files_pattern(Sandbox_t, Sandbox_rw_t, Sandbox_rw_t)
+
+sysnet_dns_name_resolve(Sandbox_t)
+
+#These macros say that Sandbox_t can run programs that are labeled bin_t or shell_exec_t without a transition.
+corenet_all_recvfrom_unlabeled(Sandbox_t)
+
+allow Sandbox_t self:tcp_socket create_stream_socket_perms;
+corenet_tcp_sendrecv_generic_if(Sandbox_t)
+corenet_tcp_sendrecv_generic_node(Sandbox_t)
+corenet_tcp_sendrecv_all_ports(Sandbox_t)
+
+# this allows the caller to bind tcp sockets to generic ports e.g.
+#ports with type port_t
+
+corenet_tcp_bind_generic_node(Sandbox_t)
+
+
+
+# Importing other modules i.e. thats not declared locally.
+# these are declared elsewhere but we need to use them in our
+# policy for our domtain transition rule
+
+gen_require(`
+    type Policy_port_t;
+')
+
+
+allow Sandbox_t Policy_port_t:tcp_socket name_bind;
+
+gen_require(`
+    type Policy_port_t;
+')
+
+
+# allow the subject create TCP socket & access server
+allow Sandbox_t Policy_port_t:tcp_socket name_connect;
+
+allow Sandbox_t self:udp_socket { create_socket_perms listen };
+corenet_udp_sendrecv_generic_if(Sandbox_t)
+corenet_udp_sendrecv_generic_node(Sandbox_t)
+corenet_udp_sendrecv_all_ports(Sandbox_t)
+corenet_udp_bind_generic_node(Sandbox_t)
+
+gen_require(`
+    type Policy_port_t;
+')
+
+
+
+# allow the subject create UDP socket & access server
+allow Sandbox_t Policy_port_t:udp_socket name_bind;
+
+
+#Allows the reading of /dev/urand. This is considered pretty safe. Whereas
+#giving a domain the ability to read /dev/rand can be considered potentially dangerous
+
+domain_use_interactive_fds(Sandbox_t)
+
+# To allow Sandbox_t to use any file on the file system that is handed to the process.
+
+files_rw_all_inherited_files(Sandbox_t)
+
+#Use of shared libraries. allows Sandbox_t to read and execure files labeled lib_t, shlib_t and textrel_shlib_t.
+
+logging_send_syslog_msg(Sandbox_t)
+
+#Sending syslog messages
+miscfiles_read_localization(Sandbox_t)
+
+#dns name resolve
+sysnet_dns_name_resolve(Sandbox_t)
+
+optional_policy(`
+	gen_require(`
+		type unconfined_t;
+		role unconfined_r;
+	')
+#Permit to run unconfined_t type
+	Sandbox_run(unconfined_t, unconfined_r)
+')

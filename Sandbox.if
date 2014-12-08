@@ -1,0 +1,187 @@
+
+## <summary>Policy for Sandbox</summary>
+
+
+########################################
+## <summary>
+##      This policy sandbox's the server program in the Bin dir
+##		the policy allows for a client program to connect to the server
+## </summary>
+## <param name="domain">
+## <summary>
+##	Domain allowed to transition.
+## </summary>
+## </param>
+#
+interface(`Sandbox_domtrans',`
+	gen_require(`
+		type Sandbox_t, Sandbox_exec_t;
+	')
+
+	corecmd_search_bin($1)
+	domtrans_pattern($1, Sandbox_exec_t, Sandbox_t)
+')
+
+
+########################################
+## <summary>
+##	Search Sandbox rw directories.
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access.
+##	</summary>
+## </param>
+#
+interface(`Sandbox_search_rw_dir',`
+	gen_require(`
+		type Sandbox_rw_t;
+	')
+
+	allow $1 Sandbox_rw_t:dir search_dir_perms;
+	files_search_rw($1)
+')
+
+########################################
+## <summary>
+##	Read Sandbox rw files.
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access.
+##	</summary>
+## </param>
+#
+interface(`Sandbox_read_rw_files',`
+	gen_require(`
+		type Sandbox_rw_t;
+	')
+
+	allow $1 Sandbox_rw_t:file read_file_perms;
+	allow $1 Sandbox_rw_t:dir list_dir_perms;
+	files_search_rw($1)
+')
+
+########################################
+## <summary>
+##	Manage Sandbox rw files.
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access.
+##	</summary>
+## </param>
+#
+interface(`Sandbox_manage_rw_files',`
+	gen_require(`
+		type Sandbox_rw_t;
+	')
+
+	manage_files_pattern($1, Sandbox_rw_t, Sandbox_rw_t)
+')
+
+########################################
+## <summary>
+##	Create, read, write, and delete
+##	Sandbox rw dirs.
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access.
+##	</summary>
+## </param>
+#
+interface(`Sandbox_manage_rw_dirs',`
+	gen_require(`
+		type Sandbox_rw_t;
+	')
+
+	manage_dirs_pattern($1, Sandbox_rw_t, Sandbox_rw_t)
+')
+
+
+########################################
+## <summary>
+##	Execute Sandbox in the Sandbox domain, and
+##	allow the specified role the Sandbox domain.
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed to transition
+##	</summary>
+## </param>
+## <param name="role">
+##	<summary>
+##	The role to be allowed the Sandbox domain.
+##	</summary>
+## </param>
+#
+interface(`Sandbox_run',`
+	gen_require(`
+		type Sandbox_t;
+	')
+
+	Sandbox_domtrans($1)
+	role $2 types Sandbox_t;
+')
+
+########################################
+## <summary>
+##	Role access for Sandbox
+## </summary>
+## <param name="role">
+##	<summary>
+##	Role allowed access
+##	</summary>
+## </param>
+## <param name="domain">
+##	<summary>
+##	User domain for the role
+##	</summary>
+## </param>
+#
+interface(`Sandbox_role',`
+	gen_require(`
+		type Sandbox_t;
+	')
+
+	role $1 types Sandbox_t;
+
+	Sandbox_domtrans($2)
+
+	ps_process_pattern($2, Sandbox_t)
+	allow $2 Sandbox_t:process signal;
+')
+
+
+########################################
+## <summary>
+##	All of the rules required to administrate
+##	an Sandbox environment
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access.
+##	</summary>
+## </param>
+## <param name="role">
+##	<summary>
+##	Role allowed access.
+##	</summary>
+## </param>
+## <rolecap/>
+#
+interface(`Sandbox_admin',`
+	gen_require(`
+		type Sandbox_t;
+	type Sandbox_rw_t;
+	')
+
+	allow $1 Sandbox_t:process { ptrace signal_perms };
+	ps_process_pattern($1, Sandbox_t)
+
+	files_search_etc($1)
+	admin_pattern($1, Sandbox_rw_t)
+
+')
+
