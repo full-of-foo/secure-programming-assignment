@@ -1,0 +1,30 @@
+################################
+## Authors:
+##
+##    Anthony Troy (14212116)
+##    Anthony Magann (14211966)
+##
+###############################
+
+How your attack works:
+ - There is at least two vulnerabilities in the server program. 
+ - The first is a string formatting vulnerability which lives at the first input path of the server program (the input supplied to the “1.Time/n2.Date” question). We can demonstrate this as follows:
+ —- $ ./exploit 1 "%p %p %p %p %p %p %p %p %p %p"
+ —- > 0x8048e34 0x8048e5e 0xb7700210 (nil) 0xb7700378 0x8048b3f 0x4 0xb77000f4 0xb77001f4 , is not a valid option.
+ - The second is a buffer overflow vulnerability which lives at the second input path of the server program (the input supplied to the “Do you wish to continue” question). We can demonstrate this as follows:
+ —- $ ./exploit 2 "$(perl -e 'print "AAAA"x300';)"
+ —- > Do you wish to continue? (Y/N)    
+ —- AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+ —- AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+ —- AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD��:��H�
+ —- (the server set faults in here)
+ — The attack attempts to do the following:
+ —- scrape the return of the function that contains the str formatting vulnerability
+ —- sends a payload (reverse tcp bind) to the overwrite that address 
+
+Problems with your approach (e.g. Are there any outstanding technical issues? Is the attack easily detectable?):
+ - It does does *not* work
+ - The attack doesn’t not exploit the server and causes a seg fault 
+
+Alternative approaches to implementing the attack that you considered during the assignment and their strengths and weaknesses:
+ - Group members found this project quite difficult. Both respectively not having a grounding in c programming, assembly programming and hexadecimal arithmetic made most of the involved tasks an uphill battle. Similarly, both being part-timers made works more challenging
